@@ -1,0 +1,76 @@
+---
+title: "372 Homework 1 Q.4"
+author: "Muassar Raja"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_document:
+    theme: journal
+    toc: no
+    toc_float:
+      collapsed: yes
+      smooth_scroll: yes
+      code_folding: hide
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+## Loading Packages
+
+library(knitr)
+library(tidyverse)
+library(kableExtra)
+library(readxl)
+library(ggrepel)
+library(psych)
+library(ggplot2)
+
+```
+
+```{r}
+#Question 4
+
+## Loading the data
+
+my_data <- read_excel("C:/Users/Muassar/Documents/IHC 1997 to 2008.xlsx")
+View(my_data)
+
+``` 
+
+```{r}
+
+## Visualizing the data
+my_data %>%
+  group_by(Years) %>%
+  summarize(my_data) 
+
+```
+
+```{r}
+
+## Describing the data
+
+describe(my_data)
+
+## Part 1 
+
+colors <- c("Horizon Blue Cross / Blue Shield of NJ"="steelblue", "Aetna Life Insurance Company"="darkred", "Celtic Insurance Company"="lightgreen")
+
+ggplot(my_data, aes(x=Years)) + 
+  geom_line(aes(y = my_data$`Horizon Blue Cross Blue Shield of NJ`, color = "Horizon Blue Cross / Blue Shield of NJ")) + 
+  geom_line(aes(y = my_data$`Aetna Life Insurance Company`, color = "Aetna Life Insurance Company")) +
+  geom_line(aes(y = my_data$`Celtic Insurance Company`, color = "Celtic Insurance Company")) + ggtitle("Insurance Premiums From 1997 to 2008") + labs(x = "Years", y = "Prices of Insurance Premiums", color = "Legend") + scale_color_manual(values = colors) 
+
+
+
+```
+```{r}
+
+ggplot(data=my_data, aes(x=Years, y=my_data$`Total Number of Standard Enrollments Across All Plans At Year End`)) +
+  geom_bar(stat="identity", fill="steelblue")+
+  geom_text(aes(label = my_data$`Total Number of Standard Enrollments Across All Plans At Year End`),vjust=-0.3, size=3.5)+
+  theme_minimal() + labs(title = "Total Standard Enrollments Across All Insurance Plans (4Q) From 1997-2008", x = "Years", y = "Number of Enrollments")
+
+```

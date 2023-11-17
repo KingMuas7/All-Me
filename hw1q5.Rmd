@@ -1,0 +1,113 @@
+---
+title: "372 Homework 1 Q.5"
+author: "Muassar Raja"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_document:
+    code_folding: hide
+    theme: journal
+    toc: no
+    toc_float:
+      collapsed: yes
+      smooth_scroll: yes
+      code_folding: hide
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+## Loading Packages 
+
+library(knitr)
+library(dplyr)
+library(tidyverse)
+library(kableExtra)
+library(readxl)
+library(ggrepel)
+library(psych)
+library(ggplot2)
+library(data.table)
+
+```
+
+# Question 5
+
+**Loading the data**
+
+```{r}
+df <- read.delim("C:/Users/Muassar/Desktop/Academics/Emory Spring'22/ECON 372/hwk1_data-1.txt")
+
+View(df)
+```
+
+## Part 1
+
+The data includes myriad of Counties in different states and the number of enrollees from those respective Counties and States each year from 2008 to 2018. Firstly, omitting the "Not Available" (NA) values, then averaging the enrollments for each year from 2008 to 2018, we are able to produce a graph as such:
+
+```{r}
+
+df2 <- df[, c('year', 'enrolled')]
+
+df2 <- na.omit(df2)
+
+df_updated <- df2 %>%
+  group_by(year) %>%
+  summarise_at(vars(enrolled), list(enrolled = mean))
+  
+colors <- ("enrolled"="darkred")
+
+ggplot(df_updated, aes(x=year)) + 
+  geom_line(aes(y = enrolled, color = "enrolled"), size = 2) + ggtitle("Average Enrollment to Medicare Advantage Plans From 2008-2018") + labs(x = "Years", y = "Number of Enrollments", color = "Legend") + scale_color_manual(values = colors) 
+
+```
+From the graph, we can see that over time, the average number of enrollments to Medicare Advantage Plans increased over the years from 2008 to 2018.
+
+## Part 2
+
+Again, first we omit the "Not Available" (NA) values, then averaging the average ffs costs from each County and State for each year from 2008 to 2018, we are able to produce a graph as such:
+
+```{r}
+df3 <- df[, c('year', 'avg_ffscost')]
+
+df3 <- na.omit(df3)
+
+df_updated2 <- df3 %>%
+  group_by(year) %>%
+  summarise_at(vars(avg_ffscost), list(avg_ffscost = mean))
+
+colors <- ("avg_ffscost"="pink")
+
+ggplot(df_updated2, aes(x=year)) + 
+  geom_line(aes(y = avg_ffscost, color = "avg_ffscost"), size = 2) + ggtitle("Average Medicare FFS Cost From 2008-2018") + labs(x = "Years", y = "Cost", color = "Legend") + scale_color_manual(values = colors) 
+```
+From the graph, we can see that the average FFS costs go up and down over the years while in the long term, the costs rise.
+
+## Part 3
+
+Looking at both the average enrollment and the average ffs costs during the period 2008-2018, we can see that both the enrollment and ffs costs have risen in the long term with enrollments having a steady increase over the period while the ffs costs have gone both up and down over the period. What can be assumed is that adverse selection can explain these trends. The average FFS costs are that of traditional Medicare and the Enrollments show the number of Enrollments for MEdicare Advantage. Now, as the prices of traditional Medicare increases, cheaper/healthier people leave the market and move on to Medicare Advantage and enroll in Medicare Advantage plans. Afterwards, with the healthier people leaving the traditional Medicare market, in an attempt to make at least "0" profit, the prices go up which ends up with even more people leaving the traditional Medicare market and enrolling in the Medicare Advantage plans. Therefore, through adverse selection, we can explain why the Average FFS Costs for traditional Medicare rise over time and the number of Enrollments rise over time for Medicare Advantage.
+
+## Part 4
+
+The three strategies used to minimize the effects of selection in the Medicare Advantage market are:
+
+**1)** Using inpatient diagnoses to adjust payment; outpatient diagnostic information was considered unreliable.
+**2)** Adoption of a new risk adjustment system that accounted for both inpatient and outpatient diagnostic information, the CMS-HCC system.
+**3)** Imposing a partial enrollment lock-in which restricted when beneficiaries could switch from MA to TM
+
+*Citation:*
+
+*Newhouse, Joseph P et al. “Steps to reduce favorable risk selection in medicare advantage largely succeeded, boding well for health insurance exchanges.” Health affairs (Project Hope) vol. 31,12 (2012): 2618-28. doi:10.1377/hlthaff.2012.0345*
+
+## Part 5
+
+I believe the adoption of the CMS-HCC system will help alleviate Health Insurance Exchanges. By analyzing and calculating the individual scores of patients using demographics and risk adjustment factors, the annual expenditure would generally fall. Therefore there would not be miss-allocation or overspending in the Medicare Advantage Plans for healthier people which would eventually cause a stop in the Health Insurance Exchanges. With the use of Hierarchical Condition Categories (HCC), MA programs are able to translate their per-member-per-month (PMPM) payments very accurately and thus MA programs do not account for unexplainable financial losses. With the correct estimation of the severity of illness in the MA programs, the CMS-HCC system will be able to allocate funds accordingly with no excess spending on the MA plans. This would lead to a lower shift in the health insurance exchanges. It is imperative, however, that the HCCs are accurate.There are challenges to this especially int he outpatient setting which struggles with inadequate coding administrative infrastructure. 
+
+*Citation:*
+
+*Yeatts, MD, MPH, John P., and Devdutta G. Sangvai Sangvai, MD, MBA. “HCC Coding, Risk Adjustment, and Physician Income: What You Need to Know.” FPM Journal, vol. 23(5):24–27., 2016, pp. 1–4. www.aafp.org/fpm/2016/0900/p24.html.*
+
+
+
+

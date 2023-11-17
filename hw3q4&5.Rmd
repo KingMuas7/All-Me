@@ -1,0 +1,261 @@
+---
+title: "372 Homework 3 Q.4 & Q.5"
+author: "Muassar Raja"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_document:
+    code_folding: hide
+    theme: journal
+    toc: false
+    toc_float: 
+      collapsed: true
+      smooth_scroll: true
+      code_folding: hide
+  word_document:
+    toc: no
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+
+## Loading Packages
+
+library(knitr)
+library(tidyverse)
+library(kableExtra)
+library(readxl)
+library(ggrepel)
+library(psych)
+library(ggplot2)
+library(data.table)
+library(reshape2)
+
+```
+
+# Question 4
+
+**Loading the data**
+
+```{r}
+
+my_data <- read_delim("C:/Users/Muassar/Desktop/Academics/Emory Spring'22/ECON 372/hwk3_data-2.txt")
+
+
+```
+
+## Part 1:
+
+### Part 1 requires us to look at the market shares of hospitals by the total discharges for each zipcode. We have to look at the market shares over time.
+
+```{r} 
+
+my_data2 <- my_data %>%
+  select(zip, year, tot_discharges) %>%
+  group_by(zip, year) %>% 
+  mutate(mkt_discharges=sum(tot_discharges, na.rm=TRUE), mkt_share=tot_discharges/mkt_discharges)
+
+ggplot(my_data2, aes(x = year, y=mkt_share, group = year)) +
+  geom_violin(trim=FALSE, fill='#A4A4A4', color="darkred")+
+  geom_boxplot(width=0.1) + theme_minimal()
+
+```
+
+
+
+
+## Part 2:
+
+### Now doing the same as in part 1 but with HRR.
+
+```{r}
+my_data3 <- my_data %>%
+  select(hrr, year, tot_discharges) %>%
+  group_by(hrr, year) %>% 
+  mutate(mkt_discharges=sum(tot_discharges, na.rm=TRUE), mkt_share=tot_discharges/mkt_discharges)
+
+ggplot(my_data3, aes(x = year, y=mkt_share, group = year)) +
+  geom_violin(trim=FALSE, fill='#A4A4A4', color="darkred")+
+  geom_boxplot(width=0.1) + theme_minimal()
+
+
+```
+
+
+
+
+## Part 3:
+
+### Now again doing the same as part 1 and 2 but based on community detection algorithms.
+```{r}
+my_data4 <- my_data %>%
+  select(mkt, year, tot_discharges, price) %>%
+  group_by(mkt, year) %>% 
+  mutate(mkt_discharges=sum(tot_discharges, na.rm=TRUE), mkt_share=tot_discharges/mkt_discharges)
+
+
+ggplot(my_data4, aes(x = year, y=mkt_share, group = year)) +
+  geom_violin(trim=FALSE, fill='#A4A4A4', color="darkred")+
+  geom_boxplot(width=0.1) + theme_minimal()
+
+
+```
+
+
+
+
+## Part 4:
+
+### Based on the graphs themselves, there seems to be a lot of differences between part 1, 2 and 3 of this question. When calculating the market shares using zipcodes, it seems the markets are highly concentrated. With HRRs however, the concentration falls and it seems to be much lower. In the case of community detection algorithms, even though the concentration is still lower, it lies somewhere in the middle. 
+
+## Part 5: 
+
+### Plotting the averages of the three calculated market shares on the same graph.
+```{r}
+
+avg1 <- aggregate(my_data2$mkt_share, list(my_data2$year), FUN=mean)
+avg2 <- aggregate(my_data3$mkt_share, list(my_data3$year), FUN=mean)
+avg3 <- aggregate(my_data4$mkt_share, list(my_data4$year), FUN=mean)
+data <- inner_join(avg1, avg2, by = "Group.1")
+data2 <- inner_join(data, avg3, by = "Group.1")
+df <- data.frame(data2)
+names(df) <- c('Year', 'Zip', 'HRR', 'CDA')
+
+ggplot(data=df) + geom_point(aes(x=Year,y=Zip, color = 'Zipcode', size = 2)) + 
+  geom_point(aes(x=Year,y=HRR, color = 'HRR', size = 2)) + 
+  geom_point(aes(x=Year,y=CDA, color = 'Community Detection Algorithm', size = 2)) + labs(x = "Years", y = "Average Market Shares", color = "Legend") + ggtitle("Average Market Shares Per Year for Each Market Definition")
+```
+
+
+
+
+# Question 5
+
+## Part 1:
+
+### I have calculated the average price for each year and then plotted it in a line graph.
+
+```{r}
+
+dataFrame <- my_data %>%
+  group_by(year) %>%
+  summarise_at(vars(price), list(avg_price = mean))
+
+dataFrame
+
+```
+
+```{r}
+
+ggplot(dataFrame, aes(x=year, y=avg_price)) +
+  geom_line()
+
+```
+
+
+
+
+
+## Part 2:
+
+### I found the monopolies of the markets using the community detection measure of markets. Then I plotted the counts into a graph.
+
+```{r} 
+
+d1 <- my_data4 %>%
+  group_by(year) %>%
+  mutate(max.mkt_share = max(mkt_share)) %>%
+  ungroup() %>%
+  mutate(max.mkt_share = case_when(mkt_share == max.mkt_share ~ max.mkt_share, TRUE ~ NA_real_)) %>%
+  filter(!is.na(max.mkt_share)) %>%
+  select(-mkt_share)
+
+d1
+
+```
+
+
+```{r}
+d1 %>%
+  select(year, max.mkt_share) %>%
+  group_by(year)
+
+barplot(table(d1$year)) + title("Number of Monopolist Markets Per Year")
+
+```
+
+
+
+
+
+
+## Part 3: 
+
+### I identified the markets with more than 4 hospitals and graphed the count. 
+
+```{r}
+
+d2 <- my_data %>%
+  group_by(mkt) %>%
+  filter(n()>4) %>%
+  na.omit(d2$mkt)
+
+
+barplot(table(d2$year)) + title("Markets More Than 4 Hospitals Per Year")
+
+```
+
+
+
+
+
+## Part 4: 
+
+### Looking at the differences between part 2 and 3 in terms of average prices.
+
+### Monopoly Avg Prices:
+```{r}
+
+
+m <- d1 %>%
+  group_by(year) %>%
+  summarise_at(vars(price), list(avg_price = mean))
+
+m
+```
+
+```{r}
+
+ggplot(m, aes(x=year, y=avg_price)) +
+  geom_line() + ggtitle("Monopoly Average Prices")
+
+```
+
+
+
+
+
+### More tha 4 Hospital Market Average Prices:
+```{r}
+
+four <- d2 %>%
+  group_by(year) %>%
+  summarise_at(vars(price), list(avg_price = mean))
+
+four
+
+
+```
+
+```{r}
+
+ggplot(four, aes(x=year, y=avg_price)) +
+  geom_line() + ggtitle("More Than 4 Hospitals in the Market Average Prices")
+
+```
+
+
+
+
+
+### Both the average prices from Part 2 and 3 follow a similar trend where average prices rise over time. 

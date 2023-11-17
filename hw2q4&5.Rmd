@@ -1,0 +1,176 @@
+---
+title: "372 Homework 2 Q.4 & Q.5"
+author: "Muassar Raja"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_document:
+    code_folding: hide
+    theme: journal
+    toc: false
+    toc_float: 
+      collapsed: true
+      smooth_scroll: true
+      code_folding: hide
+  word_document:
+    toc: no
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+## Loading Packages
+
+library(knitr)
+library(tidyverse)
+library(kableExtra)
+library(readxl)
+library(ggrepel)
+library(psych)
+library(ggplot2)
+library(data.table)
+
+```
+
+# Question 4
+
+**Loading the data**
+
+```{r}
+my_data <- read_delim("C:/Users/Muassar/Desktop/Academics/Emory Spring'22/ECON 372/hwk2_data_q4.txt")
+
+
+``` 
+
+## Part 1
+
+### First, I have to remove the duplicates for the Physicians so that all the unique physicians are identified. After that, I have subset the data to only include the year 2013. Then, by counting the number of rows, I was able to find the answer. 
+
+```{r}
+
+#my_data2 <- my_data[!duplicated(my_data$npi), ]
+
+my_data3 <- subset(my_data, year == "2013")
+
+count(my_data3, "Number of Unique Physicians in 2013")
+
+```
+
+### The number of unique physicians in the year 2013 who have administered at least one epidural steroidal injection is 10492. 
+
+## Part 2
+
+```{r} 
+
+new_npi <- my_data3$npi
+
+new_data <- inner_join(my_data, my_data3, by = "npi")
+
+
+avg_data <- new_data %>% 
+  group_by(year.x) %>%
+  summarise_at(vars(count.x), list(count.x = mean))
+
+avg_data
+
+```
+
+```{r}
+
+ggplot(data=avg_data, aes(x=year.x, y=count.x)) +
+  geom_bar(stat="identity", fill="steelblue")+
+  geom_text(aes(label = count.x),vjust=-0.3, size=3.5)+
+  theme_minimal() + labs(title = "Average Epidural Injection Counts Per Year", x = "Years", y = "Count")
+
+```
+### Therefore, the average number of injections among the physicians from the first problem each year are 127.6 in 2013, 136.3 in 2014, and 143.1 in 2015. 
+
+## Part 3
+
+```{r} 
+my_new_data1 <- subset(my_data, year == "2013")
+my_new_data2 <- subset(my_data, year == "2014")
+
+my_new_data3 <- inner_join(my_new_data1, my_new_data2, by = "npi")
+
+
+my_new_data3$decrease <- (my_new_data3$count.x - my_new_data3$count.y)
+
+
+data_new1 <- my_new_data3[order(my_new_data3$decrease, decreasing = TRUE), ]
+data_new1 <- data_new1 %>%
+  select(npi, decrease)
+
+data_new1 <- data_new1[1:10, ]
+
+data_new1
+
+
+```
+### The ten physicians with the largest deacrease in injections from 2013 to 2014 are shown above. 
+
+## Part 4
+
+### The graph for the number of unjections by the physicians in part 3 is shown below:
+
+```{r}
+
+data_new2 <- inner_join(my_data, data_new1, by = "npi")
+
+ggplot(data_new2, aes(x=year, y=count, color=year)) +
+  geom_point()
+
+data_new2 %>%
+  select(npi, year, count)
+
+```
+# Question 5
+
+**Loading the Data** 
+
+```{r} 
+
+df <- read_delim("C:/Users/Muassar/Desktop/Academics/Emory Spring'22/ECON 372/hwk2_data_q5.txt")
+
+
+```
+## Part 1
+
+### The set of HCPCS codes that capture physician office visits are 99201, 99202, 99203, 99204, 99205, 99211, 99212, 99213, 99214, and 99215.
+
+## Part 2
+
+### The Evealuation & Management codes are 99201-99215. To find the physicians with the top 10 visits in 2018, I will need to filter the data. 
+
+```{r} 
+
+my_df <- subset(df, df$hcpcs_code == c("99201", "99202", "99203", "99204", "99205", "99211", "99212", "99213", "99214", "99215"))
+
+my_df <- my_df %>%
+  select(npi, hcpcs_code, year, count)
+
+my_df2 <- my_df[order(my_df$count, decreasing = TRUE), ]
+
+my_df2 <- my_df2[1:10, ]
+
+my_df2
+```
+### Therefore, the top 10 physicians with the most visits for E&M in 2018 are listed above.
+
+## Part 3
+
+```{r} 
+
+my_df2$RVUpercent = c(34.0, 34.0, 28.0, 34.0, 28.0, 32.7, 28.0, 28.0, 45.8, 28.0)
+
+my_df2$Gain = (my_df2$count * (my_df2$RVUpercent/100))
+
+my_df2
+
+```
+### For the top 10 physicians from part 2, and having identified their codes and the increase in the wRVUs for their respective codes, I was able to find how much these physicians are able to gain with the increased RVU rates.
+
+## Part 4
+
+### After the 2021 fee schedule update, more expensive services will be underutilized because of the higher pay and net benefit for the patients. The optimal amount of care will not be achieved. Even though physicians would want to perform the more expensive services, the net benefit for both physicians and patients would not match up. 
